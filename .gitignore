@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+frontend/.env
+backend/.env
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# npm debug files
+npm-debug.log*
+
+# Ignore specific IDE or editor files (e.g., VSCode, JetBrains, etc.)
+.vscode/
+.idea/
