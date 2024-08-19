@@ -38,22 +38,37 @@ function App() {
   const handleInputChange = (index, event) => {
     const newData = [...driverData];
     newData[index]['Proposed Increase'] = parseFloat(event.target.value) / 100 || 0;
-    setDriverData(newData);
-    if (selectedProperty) {
-      updateChart(selectedProperty, newData);
-    }
-  };
 
-  const calculateRenewal = async () => {
-    try {
-      const response = await axios.post('http://localhost:5000/calculate-renewal', { driverData });
-      console.log('Renewal calculated:', response.data);
-      setDriverData(response.data);
-      if (selectedProperty) {
-        updateChart(selectedProperty, response.data);
+    // Log the entire row object for inspection
+    console.log(`Row data for index ${index}:`, newData[index]);
+
+    // Calculate the new Projected Renewal immediately
+    const updatedDriverData = newData.map(row => {
+      const increase = row['Proposed Increase'] !== undefined ? row['Proposed Increase'] : row['Standard Increase'];
+      
+      console.log(`Calculating for Property: ${row.Property}`);
+      console.log(`Base Rent: ${row['Base Rent']}`);
+      console.log(`Increase: ${increase}`);
+
+      // Temporary fallback value for testing
+      const baseRent = row['Base Rent'] !== undefined ? row['Base Rent'] : 1000;  // Default value for testing
+
+      if (baseRent && !isNaN(baseRent) && !isNaN(increase)) {
+        row['Projected Renewal'] = baseRent * (1 + increase);
+        console.log(`Projected Renewal: ${row['Projected Renewal']}`);
+      } else {
+        console.warn(`Missing or invalid Base Rent for property: ${row.Property}`);
+        row['Projected Renewal'] = 'N/A';  // Mark as N/A if Base Rent is missing or invalid
       }
-    } catch (error) {
-      console.error("Error calculating renewal:", error);
+
+      return row;
+    });
+
+    setDriverData(updatedDriverData);
+
+    // Update the chart immediately if a property is selected
+    if (selectedProperty) {
+      updateChart(selectedProperty, updatedDriverData);
     }
   };
 
@@ -92,7 +107,7 @@ function App() {
         datasets: [
           {
             label: `${property} Rent Data`,
-            data: rentData,
+            data: rentData.map(value => (value !== 'N/A' && !isNaN(value) ? value : null)), // Ensure the chart data is numeric or null
             borderColor: 'rgb(75, 192, 192)',
             fill: false,
           },
@@ -135,12 +150,14 @@ function App() {
                   />
                   %
                 </td>
-                <td>{row['Projected Renewal'] ? row['Projected Renewal'].toFixed(2) : 'N/A'}</td>
+                <td>{row['Projected Renewal'] !== 'N/A' && !isNaN(row['Projected Renewal']) 
+                        ? row['Projected Renewal'].toFixed(2) 
+                        : 'N/A'}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-        <button onClick={calculateRenewal}>Calculate Renewal</button>
       </div>
 
       {chartData && (
@@ -159,11 +176,6 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
 
 
 
@@ -241,7 +253,6 @@ export default App;
 
 //   const updateChart = async (property, data) => {
 //     try {
-//       // Fetch the rent summary for the selected property
 //       const response = await axios.get(`http://localhost:5000/rent-summary/${property}`);
 //       const propertyData = response.data;
 
@@ -258,7 +269,7 @@ export default App;
 //       const selectedPropertyData = data.find(row => row.Property === property);
 //       if (selectedPropertyData) {
 //         const projectedRenewal = selectedPropertyData['Projected Renewal'];
-//         rentData.push(projectedRenewal); // Add the projected renewal to the rent data
+//         rentData.push(projectedRenewal);
 //       }
 
 //       setChartData({
@@ -279,7 +290,7 @@ export default App;
 //   };
 
 //   return (
-//     <div className="App" style={{ display: 'flex' }}>
+//     <div className="App" style={{ display: 'flex', flexDirection: 'row' }}>
 //       <div style={{ flex: 1 }}>
 //         <h1>Rent Dashboard</h1>
 //         <table>
@@ -318,9 +329,14 @@ export default App;
 //       </div>
 
 //       {chartData && (
-//         <div style={{ flex: 1, marginLeft: '20px' }}>
+//         <div style={{ flex: 1, marginLeft: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
 //           <h2>Rent Summary</h2>
 //           <Line data={chartData} />
+//           {selectedProperty && (
+//             <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
+//               <h3>Selected Property: {selectedProperty}</h3>
+//             </div>
+//           )}
 //         </div>
 //       )}
 //     </div>
@@ -328,3 +344,15 @@ export default App;
 // }
 
 // export default App;
+
+
+
+
+
+
+
+
+
+
+
+
