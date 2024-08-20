@@ -17,7 +17,7 @@ function App() {
       {
         label: 'Rent Data',
         data: [],
-        borderColor: 'rgb(75, 192, 192)',
+        borderColor: 'rgb(75, 192, 192)',  
         fill: false,
       },
     ],
@@ -195,3 +195,4 @@ function App() {
 }
 
 export default App;
+  
